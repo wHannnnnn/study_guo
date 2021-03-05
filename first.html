@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    body {
+        height: 20000px;
+    }
+</style>
+
+<body>
+    <input class="view1" type="text">
+    <input class="view2" type="text">
+</body>
+<!-- this -->
+<script>
+    // this指向
+    // 1. 普通函数中 指向window 
+    function fn() {
+        this.guo = 'guoguo';
+        console.log(this, '普通函数') // window
+    }
+    fn();
+    console.log(window.guo)
+    // 2. 构造函数中this指向调用构造函数的实例（谁调用就指向谁）
+    function fn1(guo) {
+        this.guo = guo;
+        console.log(this, '构造函数') // aa
+    }
+    var aa = new fn1('guoguo');
+    console.log(aa);
+    // 3. 箭头没有this和arguments 调用的是上级作用域this指向  没有就是window
+    var fn3 = () => {
+        this.as = 'guoguo'
+        console.log(this, '箭头函数');
+    }
+    fn3()
+    console.log(window.as)
+    // 4. 对象中函数和箭头函数分情况
+    var obj = {
+        name: 'guoguo',
+        fn: function () {
+            console.log(this)
+        },
+        fn1: () => {
+            console.log(this)
+        },
+        fn2: function () {
+            var fn2fn = () => {
+                console.log(this)
+            }
+            fn2fn();
+        }
+    }
+    obj.fn() // 直接调用指向对象
+    obj.fn1() // 没有上及作用域 指向window
+    var objfn = obj.fn
+    objfn() // 直接等于函数 指向window
+    obj.fn2() // 上级作用域fn2函数指向对象
+</script>
+<!-- 原型 原型链 继承 -->
+<script>
+    // 1. 原型链继承 父类的实例作为子类的原型  缺点是引用类型数据共享 不能给父类的构造函数传参数
+    function fn() {
+        this.name = 'guoguo';
+        this.list = [1, 2, 3, 4];
+    }
+
+    function fn1() {
+        this.age = 18;
+    }
+    fn1.prototype = new fn();
+    // fn1.prototype.aname = '22'
+    var a1 = new fn1();
+    console.log(a1)
+    a1.list.push(5)
+    var a2 = new fn1();
+    console.log(a2.list) // a1实例添加了5 a2实例也共享了a1的list
+    // 原型和原型链 fn.prototype是一个对象 
+    // 一层一层的查找 先查找 fn1的实例对象 然后找它的原型 没有的话查找父类实例对象 然后再原型 再没有就是null
+    console.log(a1.__proto__ == fn1.prototype)
+    console.log(a1.__proto__.__proto__ == fn1.prototype.__proto__ && fn1.prototype.__proto__ == fn.prototype)
+    console.log(a1.__proto__.__proto__.__proto__ == fn1.prototype.__proto__.__proto__ &&
+        fn1.prototype.__proto__.__proto__ == fn.prototype.__proto__ &&
+        fn.prototype.__proto__ == Object.prototype)
+    console.log(Object.prototype.__proto__ == null)
+    console.log(fn1.prototype.constructor == fn)
+</script>
+<script>
+    // 2. 构造函数继承 call apply  
+    // 修改this指向调用函数对象中的属性和方法 可以传递参数 
+    // 缺点是只能继承父类自身的属性和方法  无法继承原型中的属性和方法 每次实例化对象都得创建一遍 不能实现函数复用
+    function fn() {
+        this.guo = 'guoguo';
+        this.getName = function () {
+            console.log(this)
+        }
+        console.log(this) // fn1
+    }
+
+    function fn1(name) {
+        this.age = 18;
+        fn.call(this, name)
+    }
+    var aa = new fn1();
+    aa.getName();
+    console.log(aa.guo)
+</script>
+<script>
+    // 3. 组合继承 原型链继承 + 构造函数继承 .call调用父类的方法和属性 prototype继承原型中的方法和属性
+    // 缺点是会继承两次父类实例对象中的属性 (解决办法组合寄生继承)
+    // 4. 寄生继承(用于对象) 新建一个构造函数 这个函数作为新的父类实例 让它的原型等于旧的父类 让子类的原型等于这个构造函数 类似于原型链继承(子类的原型 = 父类的实例(这个父类是新创建的构造函数))
+    function create(obj) {
+        function F() {};
+        F.prototype = obj;
+        return new F();
+    }
+    // 或者 object.create(obj) 创建一个对象 对象的__proto__ = obj 
+    var obj = {
+        name: 'asd'
+    }
+    var clone = create(obj) //子类 = 构造函数 构造函数的prototype = 父类 子类的__proto__ = 父类
+    var clone1 = Object.create(obj)
+    console.log(clone.__proto__ == obj, clone)
+    console.log(clone1.__proto__ == obj, clone1)
+
+    // 5. 组合寄生继承 可以传参 引用类型不共享 使用原型链继承复用方法 避免调用两次父类实例对象中的属性
+    function fn(age) {
+        this.name = 'guoguo'
+    }
+    fn.prototype.ages = '19'
+
+    function fn1() {
+        this.age = 18;
+        fn.call(this, this.age);
+        this.name = 'hanhan'
+    }
+    // fn1.prototype = fn.prototype 不行 这样在fn中添加方法 fn1中也会有
+    function extend(son, father) {
+        // var fn = function(){};
+        // fn.prototype = father.prototype;
+        // var clone = new fn();
+        // 或者
+        var clone = Object.create(father.prototype); // clone.__proto__ == father.prototype
+        clone.constructor = son; // 不加 指针指向父类
+        son.prototype = clone;
+    }
+    extend(fn1, fn)
+    fn1.prototype.get = '21'; // 添加方法加在继承后面 上面子类的原型 = 构造函数
+    var aa = new fn1();
+    console.log(aa)
+</script>
+<!-- 异步 -->
+<script>
+    // js单线程 由上到下按顺序执行 异步事件放入事件队列中 主进程结束完 执行事件队列中的异步(顺序执行 异步函数不需要上一个执行完 可以同时进行 不阻塞进程)
+    // setTimeout(function () {
+    //     // debugger
+    //     console.log(5, new Date().getTime())
+    // }, 0)
+    // for(var i=0; i<1000000000; i++) {}
+    // setTimeout(function () {
+    //     // debugger
+    //     console.log(5, new Date().getTime())
+    // }, 0)
+    // setTimeout(function () {
+    //     // debugger
+    //     consolee.log(5, new Date().getTime())
+    // }, 0)
+    // setTimeout(function () {
+    //     // debugger
+    //     console.log(5, new Date().getTime())
+    // }, 0)
+    // setTimeout(function () {
+    //     // debugger
+    //     console.log(5, new Date().getTime())
+    // }, 0)
+    // setTimeout(function () {
+    //     // debugger
+    //     console.log(5, new Date().getTime())
+    // }, 0)
+    // setTimeout(function () {
+    //     // debugger
+    //     console.log(5, new Date().getTime())
+    // }, 0)
+    // setTimeout(function () {
+    //     // debugger
+    //     console.log(5, new Date().getTime())
+    // }, 0)
+    // setTimeout(function () {
+    //     // debugger
+    //     console.log(5, new Date().getTime())
+    // }, 0)
+
+
+
+    async function anum() {
+        let a = 10
+        return a //return则相当于执行了Promise.resolve(a) 可以用.then接收
+    }
+    // 同理 promise也有两种接收方式
+    // function anum(){
+    //    return new Promise(function (resolve) {
+    //         let a = 10
+    //         resolve(a) //相当于async中的return
+    //     })
+    // }
+    // 可以用await
+    async function result() {
+        var aa = await anum()
+        console.log(aa)
+    }
+    result();
+    // 和.then
+    anum().then((res) => {
+        console.log(res)
+    })
+
+    // js执行顺序 
+    // async function async1() {
+    //     console.log(1)
+    //     await async2()
+    //     setTimeout(function () {
+    //         console.log(2)
+    //     }, 0)
+    // }
+    // async function async2() {
+    //     setTimeout(() => {
+    //         console.log(3)
+    //     }, 0)
+    // }
+    // console.log(4)
+    // setTimeout(function () {
+    //     // debugger
+    //     console.log(5)
+    // }, 0)
+    // new Promise(function (resolve) {
+    //     resolve()
+    //     console.log(6)
+    //     setTimeout(function () {
+    //         console.log(8)
+    //     }, 0)
+    // }).then(() => {
+    //     console.log(7)
+    // })
+    // async1()
+</script>
+<!-- 闭包 -->
+<script>
+    // 闭包是在函数外部访问函数内部的变量 防止全局变量溢出
+    function fn() {
+        var bb = 'guoguo'
+        return bb;
+    }
+    var aa = fn();
+    console.log(aa, window.bb) // 内部变量return出来
+    // 功能：输入框输入字段需要接口校验 将错误的值缓存起来 减少接口的调用
+    var afn = (function fn1(val) {
+        var arr = []
+        return function fn2(val) {
+            if (arr.indexOf(val) == -1) {
+                arr.push(val)
+            }
+            return arr
+        }
+    })()
+    var a1 = afn('1')
+    console.log(a1)
+    // 清除闭包直接让函数变量 = null
+    // 下面是不使用闭包
+    // function fn1() {
+    //     var _this = this
+    //     _this.arr = []
+    //     _this.fn2 = function(val) {
+    //         if (_this.arr.indexOf(val) == -1) {
+    //             _this.arr.push(val)
+    //         }
+    //         return _this.arr
+    //     }
+    // }
+    // var a1 = new fn1()
+    // console.log(a1.fn2('1'))
+</script>
+<!-- vue相关 -->
+<script>
+    // 1. data为什么是函数return？
+    // 目的是多次引用同一组件 修改data数据相互不影响（每复用一次组件，就会返回一份新的data）
+    // 2. key的作用？
+    // key相当于标识 加了key就用key去比较 不加key会用位置比较（不要用index做为key 和不加key一样，页面组件简单的话可以，复杂就会出现和不加key一样的问题）
+    // 在页面较复杂（子组件循环）不加key 假如有三个输入框， 删除第二个会把第三个删除，原因是vue数据更新是新旧值比较更新vdom
+    // 对于数据来说是 1,2,3 变成了1，3 对于vue来说它会去比较值， 1和1没变，2和3 2变成了3，3和undefined 3没有了，所以vue的解决方式是2变成了3， 3没有就被删除了
+    // 3. computed和watch的区别？
+    // 计算属性和监听属性
+    // computed定义一个值并return返回，这个值不允许在data和props中定义，如果这个值相关联的数据没有变化 会优先从缓存中读取 不需要再次执行
+    // watch是监听data props中已有的数据，可以获取新旧值的变化，监听的值不管是否有的变化只要调用了就会重新执行watch
+    // 4. vuex的使用？
+    // vuex管理全局状态，但是在页面刷新后会重置，需要缓存的数据可以结合localstorage或者sessionstorage使用
+    // 分为state getter mutation action 还有个module（模块）
+    // 可以定义模块集合方便管理 在vuex中引用 modules：{a：module1， b: module2}  module1 = { state: () => ({ ... }),mutations: { ... },actions: { ... }getters: { ... }}
+    // state就是数据 getter过滤数据 mutation操作state的方法   action处理异步（action不能直接操作state 必须调用mutation中的commit方法）
+    // vue说mutation处理同步操作 修改state应该是立即生效的   action处理异步操作 其实这是个概念 不是说在mutation中处理异步就会报错，是不会报错的，
+    // 这两个函数就是谁来干什么工作的事 个人觉得其实就是vue定义的！！！！！代码规范！！！！！！
+    // 使用方法： state： this.$store.state  mapstate (computed中定义...mapstate)
+    //   mutation： this.$store.commit  mapMutation （methods中定义..mapMutations）
+    //   action: this.$store.dispatch  mapActions (同上)
+    // 5. vue中如何检测到对象属性的添加或删除让页面更新？
+    // this.$set   Vue.set   Object.assign 数组push filter等方法
+    // 6. vue的双向绑定实现原理？
+    // 数据劫持 + 观察者模式    数据变化 属性劫持Object.defineProperty后 set写入数据执行观察者更新页面 // 下面有！！！
+    // 7. 首屏优化？
+    // 路由懒加载（ () => import(../../) ）
+    // cdn外部加载资源（vue router axios）
+    // 减少图片使用 懒加载等
+    // 第三方库按需引入
+    // productionSourceMap设置为false 避免生成map文件
+    // 8. history模式，vue默认hash模式 url里会有# 可以在router设置mode：history，页面没有#页面会404，相当于请求接口，需要后端配合。
+    // 9. 生产环境和开发环境文件路径配置：在.env.development 和 .env.production文件中设置VUE_APP_XXX = '111.22.333'，通过 process.env.VUE_APP_XXX获取参数，vue会判断环境  （process.env.NODE_ENV获取当前环境）
+    // 10. keepalive 页面缓存如何使用
+    // 11. directive 自定义指令 操作dom （拖拽 聚焦）
+    // 12. 组件之间的传值
+    // 13. 阻止事件冒泡 默认行为的方法
+</script>
+<!-- vue双向属性绑定 -->
+<script>
+    // 拓展内容：观察者模式而后订阅发布模式的区别？
+    // 观察者模式让多个观察者对象同时监听某一个目标对象，当这个目标对象的状态发生变化时，会通知所有观察者对象
+    // 订阅发布模式多了个事件中心（就是对象），订阅者需要向事件中心订阅指定的事件（对象中的某个属性），发布者需要向事件中心发布指定事件（对象中的某个属性），订阅此事件的订阅者会收到通知
+    // 观察者
+    class Watcher {
+        constructor(dom) {
+            this.dom = dom
+        }
+        update(html) {
+            this.dom.value = html
+        }
+    }
+
+    // subject主体，负责收集观察者依赖并在特定实际向依赖进行播报
+    class Dep {
+        constructor() {
+            this.deps = []
+        }
+        addDep(watcher) {
+            var isExists = this.deps.some(function (item) {
+                return item === watcher;
+            });
+            if (!isExists) {
+                this.deps.push(watcher)
+            }
+        }
+        notify(value) {
+            for (let i = 0; i < this.deps.length; i++) {
+                let watcher = this.deps[i]
+                watcher && watcher.update(value)
+            }
+        }
+    }
+
+    let dep = new Dep()
+
+    function defineReactive(dep, target, key, watcher) {
+        // 相同watcher过滤
+        watcher.forEach(ele => {
+            dep.addDep(ele)
+        });
+        let v = null
+        Object.defineProperty(target, key, {
+            get() {
+                return v
+            },
+            set(value) {
+                v = value
+                dep.notify(v) // 标对象的状态发生变化时，会通知所有观察者对象
+            }
+        })
+    }
+
+    // 获取类名为view1元素的dom对象
+    let view1 = document.querySelector('.view1')
+    let view2 = document.querySelector('.view2')
+
+    let watcher1 = new Watcher(view1)
+    let watcher2 = new Watcher(view2)
+
+    let model = {
+        value: ''
+    }
+    // 将model的value定义为响应式属性并与watcher绑定在一起
+    defineReactive(dep, model, 'value', [watcher1, watcher2])
+
+    view1.addEventListener('change', function () {
+        model.value = this.value
+    })
+    view2.addEventListener('change', function () {
+        model.value = this.value
+    })
+</script>
+<!-- webpack -->
+<script>
+    // webpack主要属性？
+    // entry（入口文件） 
+    // output（出口文件）  
+    // module（模块处理需要下载引入对应的loader模块 主要是es6解析 sass解析 图片解析为base64文件）
+    // plugins （例如 1.css文件处理之后通常会放在js文件中，将js和css文件解析成不同文件，分离js和css文件，避免js文件过大（提取css文件）；2.生成html并引入对应entry中的js文件 3.每次打包删除上一次的dist文件 4.在webpack.prod.js和webpack.dev.js中分别配置生产环境 开发环境全局常量）
+    // optimization  (优化构建 压缩css js文件 分割代码)
+</script>
+<!-- js防抖节流 -->
+<script>
+    // 防抖： 设置一个时间范围 多次执行并且执行的间隔时间小于设定时间 只执行一次  （输入框验证 滚动事件监听）
+    // 具体实现方式：   
+    // 非立即执行：设置延迟时间再执行函数，如果这段时间内又触发了这个函数，则清除倒计时重新计算 （最后一次） 
+    // 立即执行：立即执行函数 多次执行只有间隔间隔超过设置时间才执行函数 间隔时间小于设置时间内又触发了这个函数，则清除倒计时重新计算  （第一次）
+    var obj = {
+        timer: null,
+        fn: function () {
+            this.timer && clearTimeout(this.timer)
+            // 重新计算
+            this.timer = setTimeout(() => {
+                console.log('asd')
+            }, 1000)
+        },
+        fn1: function () {
+            this.timer && clearTimeout(this.timer)
+            if (!this.timer) {
+                console.log('asd')
+            }
+            // 重新计算    
+            this.timer = setTimeout(() => {
+                this.timer = null // 间隔超过设定时间 timer=null 上面的才能执行
+            }, 1000)
+        },
+        // 节流： 规定在一个时间范围内，只能触发一次函数  多次触发只有一次生效
+        fn2: function () {
+            if (this.timer) {
+                return false
+            }
+            this.timer = setTimeout(() => {
+                this.timer = null
+                console.log('asd')
+            }, 1000)
+        }
+    }
+    window.onscroll = function () {
+        obj.fn1()
+    }
+</script>
+<!-- es6 -->
+<script>
+    // 1. var const let 区别？
+    // var 声明变量 变量提升 可以跨块访问, 不能跨函数访问
+    // const定义常量 不可以跨块访问, 不能跨函数访问
+    // let在块级作用域中定义使用 不可以跨块访问, 不能跨函数访问
+    // 同一作用域下let和const不能声明同名变量，而var可以
+    // const定义必须初始化赋值 不允许重新定义（const定义的对象中的属性是可以修改，不允许重新定义常量，但是对象中的属性是可以修改的）
+    // 2. 箭头函数和普通函数的区别？
+    // 箭头没有this和arguments 调用的是上级作用域this指向  没有就是window
+    // 3. Promise
+    // 4. 解构赋值
+    // 5. 拓展运算符 （用于数组对象复制 数组合并 字符串转数组 函数不定参数...arg） 
+    // 拓展内容：函数arguments是个类数组 有索引 有length 但是不能操作数组 可以使用Array.from()或者Array.prototype.slice.call(arguments) 转为真正的数组  或者直接用上面的方法函数接收参数用...arg
+    // 6. class类 （实现继承）
+</script>
+<!-- 常见问题 -->
+<script>
+    // 数组去重   for循环indexOf查找去重   set去重   for循环查找对象key值   数组reduce（不是很了解）
+    // 冒泡排序
+    // 快速排序
+    // 递归遍历（多维数组和一维数组之间的转化 多维数组查找）
+    // 多维转一维
+        // var arr = [{
+        //     id: 1,
+        //     children: [{
+        //         id: 2,
+        //         children: [{
+        //             id: 3
+        //         }]
+        //     }]
+        // }]
+        // function fn(arr) {
+        //     let newArr = [];
+        //     for (let i = 0; i < arr.length; i++) {
+        //         newArr.push(arr[i])
+        //         if (arr[i].children) {
+        //             newArr = newArr.concat(fn(arr[i].children))
+        //             delete arr[i].children
+        //         }
+        //     }
+        //     return newArr
+        // }
+        // console.log(fn(arr))
+    // 一维转多维
+        // var arr1 = [{
+        //         id: 1,
+        //         parent: 'all'
+        //     },
+        //     {
+        //         id: 2,
+        //         parent: 1
+        //     },
+        //     {
+        //         id: 3,
+        //         parent: 1
+        //     },
+        //     {
+        //         id: 4,
+        //         parent: 2
+        //     },
+        // ]
+
+        // function fn1(arr, parentId) {
+        //     var newArr = []
+        //     for (let i = 0; i < arr.length; i++) {
+        //         if (arr[i].parent == parentId) {
+        //             arr[i].children = fn1(arr, arr[i].id)
+        //             newArr.push(arr[i])
+        //         }
+        //     }
+        //     return newArr
+        // }
+        // console.log(fn1(arr1, 'all'))
+    // 多维数组查找  可以使用try catch终止循环
+        // function fn2(arr) {
+        //     var obj = null
+        //     try {
+        //         fn3(arr)
+        //         function fn3(arr){
+        //             for (let i = 0; i < arr.length; i++) {
+        //                 if(arr[i].id == 3){
+        //                     obj = arr[i];
+        //                     throw 'error'
+        //                 } else {
+        //                     arr[i].children && fn3(arr[i].children)
+        //                 }
+        //             }
+        //         }
+        //     } catch (err) {}
+        //     return obj
+        // }
+        // console.log(fn2(arr))
+    // 深拷贝与浅拷贝（浅拷贝只复制对象的一层 深拷贝全部复制）（json.parser(json.stringify)有些许问题 无法拷贝函数 正则 undefined 需要循环递归处理深拷贝）
+    // call和apply（修改this指向 写法不同 a.call(b) a的this指向b）
+    // 1<3<2结果 0.1+0.2结果
+    // 数组for   forEach   for of  (forEach无法跳出循环 for of没有索引) （正常情况下for循环和forEach循环删除数组会有索引问题 for循环可以使用 i-- 或者 倒循环 最好使用filter  forEach就没有办法操作是数组）
+    // map（函数的返回值组成新的数组 改变数组的内容 长度不变） filter （过滤原数组中符合条件的项 返回新数组 不改变数组的内容 长度改变）
+    // some（数组中只要有一个满足条件 返回true） every（数组中只要有一个不满足条件 返回false）
+    // localStorage和sessionstorage和cookie的区别
+    // 跨域的方式
+</script>
+<!-- css -->
+<script>
+    // flex布局  常用属性
+        //  flex-direction 主轴排列方向
+        //  flex-wrap 换行 
+        //  justify-content 主轴对齐方式
+        //  align-items  交叉轴对齐方式
+        // flex：1 相当于flex: 1 1 0的简写 包括三个属性  flex-grow（剩余空间分配） flex-shrink（缩放比例） flex-basic（初始值） （详细解释）
+</script>
+</html>
