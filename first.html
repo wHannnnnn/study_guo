@@ -27,7 +27,7 @@
     }
     fn();
     console.log(window.guo)
-    // 2. 构造函数中this指向调用构造函数的实例（谁调用就指向谁）
+    // 2. 构造函数中this指向调用函数的实例（谁调用就指向谁）
     function fn1(guo) {
         this.guo = guo;
         console.log(this, '构造函数') // aa
@@ -65,6 +65,12 @@
 </script>
 <!-- 原型 原型链 继承 -->
 <script>
+    // 原型和原型链
+        // 原型链是一个向上查找属性和方法的过程 （通过原型链查找属性和方法）
+        // 函数有prototype属性 对象有__proto__   (定义函数fn 实例对象a)  
+        // 每个原型都有一个constructor属性，指向该关联的构造函数(即fn.prototype.constructor = fn)
+        // a.__proto__ 指向 fn.prototype 所以 a.__proto__= fn.prototype   fn.prototype也是一个对象（Object） 所以 a.__proto__.__proto__= fn.prototype .__proto__ = Object.prototype 
+        // 继续往上找就是 a.__proto__.__proto__.__proto__= fn.prototype .__proto__.__proto__ = Object.prototype.__proto__ = null  直到最后如果没有找到就是null
     // 1. 原型链继承 父类的实例作为子类的原型  缺点是引用类型数据共享 不能给父类的构造函数传参数
     function fn() {
         this.name = 'guoguo';
@@ -75,21 +81,18 @@
         this.age = 18;
     }
     fn1.prototype = new fn();
-    // fn1.prototype.aname = '22'
+    fn1.prototype.aname = '22'
     var a1 = new fn1();
     console.log(a1)
     a1.list.push(5)
     var a2 = new fn1();
-    console.log(a2.list) // a1实例添加了5 a2实例也共享了a1的list
-    // 原型和原型链 fn.prototype是一个对象 
-    // 一层一层的查找 先查找 fn1的实例对象 然后找它的原型 没有的话查找父类实例对象 然后再原型 再没有就是null
     console.log(a1.__proto__ == fn1.prototype)
     console.log(a1.__proto__.__proto__ == fn1.prototype.__proto__ && fn1.prototype.__proto__ == fn.prototype)
     console.log(a1.__proto__.__proto__.__proto__ == fn1.prototype.__proto__.__proto__ &&
         fn1.prototype.__proto__.__proto__ == fn.prototype.__proto__ &&
         fn.prototype.__proto__ == Object.prototype)
     console.log(Object.prototype.__proto__ == null)
-    console.log(fn1.prototype.constructor == fn)
+    console.log(fn.prototype.constructor)
 </script>
 <script>
     // 2. 构造函数继承 call apply  
@@ -133,7 +136,7 @@
         };
         return clone;
     }
-    var clone = person(obj) //子类 = 构造函数 构造函数的prototype = 父类 子类的__proto__ = 父类
+    var clone = person(obj) // 函数的prototype = 父类 子类的__proto__ = 父类
     var clone1 = person(obj)
     console.log(clone.__proto__ == obj, clone)
     console.log(clone1.__proto__ == obj, clone1)
@@ -478,20 +481,40 @@
 <script>
     // 数组去重   for循环indexOf查找去重   set去重   for循环查找对象key值   数组reduce（不是很了解）
     // 冒泡排序
+    function popSort(arr) {
+        const newArr = [...arr];
+        for (let i = 0; i < newArr.length - 1; i++) {
+            for (let j = 0; j < newArr.length - i - 1; j++) {
+                if (newArr[j] > newArr[j + 1]) {
+                    [newArr[j + 1], newArr[j]] = [newArr[j], newArr[j + 1]]
+                }
+            }
+        }
+        return newArr;
+    }
     // 快速排序
+    function initArr(n = 100000) {
+        let testArr = [];
+        for (let i = 0; i < n; i++) {
+            testArr.push(Math.floor(Math.random() * n));
+        }
+        return testArr;
+    }
+
     function sort(arr) {
         //如果数组<=1,则直接返回
         if (arr.length <= 1) {
             return arr;
         }
         var pivotIndex = Math.floor(arr.length / 2);
-        //找基准，并把基准从原数组删除
-        var pivot = arr.splice(pivotIndex, 1)[0];
+        //基准值
+        var pivot = arr[pivotIndex];
         //定义左右数组
         var left = [];
         var right = [];
         //比基准小的放在left，比基准大的放在right
-        for (var i = 0; i < arr.length; i++) {
+        for (let i = 0; i < arr.length; i++) {
+            if (i == pivotIndex) continue
             if (arr[i] <= pivot) {
                 left.push(arr[i]);
             } else {
@@ -501,7 +524,38 @@
         //递归
         return [...sort(left), ...[pivot], ...sort(right)];
     }
-    console.log(sort([11,2,33,15,6,77,44]))
+
+    function sort1(arr, begin, end) {
+        //递归出口
+        if (begin >= end)
+            return;
+        var l = begin; // 左指针
+        var r = end; //右指针
+        var temp = arr[begin]; //基准数，这里取数组第一个数
+        //左右指针相遇的时候退出扫描循环
+        while (l < r) {
+            //右指针从右向左扫描，碰到第一个小于基准数的时候停住
+            while (l < r && arr[r] >= temp)
+                r--;
+            //左指针从左向右扫描，碰到第一个大于基准数的时候停住
+            while (l < r && arr[l] <= temp)
+                l++;
+            //交换左右指针所停位置的数
+            [arr[l], arr[r]] = [arr[r], arr[l]];
+        }
+        //最后交换基准数与指针相遇位置的数
+        [arr[begin], arr[l]] = [arr[l], arr[begin]];
+        //递归处理左右数组
+        sort1(arr, begin, l - 1);
+        sort1(arr, l + 1, end);
+    };
+    console.time('sort');
+    sort(initArr());
+    console.timeEnd('sort');
+
+    console.time('sort1');
+    sort1(initArr(), 0, 99999);
+    console.timeEnd('sort1');
     // 递归遍历（多维数组和一维数组之间的转化 多维数组查找）
     // 多维转一维
     // var arr = [{
@@ -582,15 +636,19 @@
     // some（数组中只要有一个满足条件 返回true） every（数组中只要有一个不满足条件 返回false）
     // localStorage和sessionstorage和cookie的区别
     // 跨域的方式？jsonp跨域 proxy代理 nginx反向代理 后端cors websocket即时通讯
+    // 图片懒记载的原理
 </script>
 <!-- css -->
 <script>
-    // flex布局  常用属性
+    // 1. flex布局  常用属性
     //  flex-direction 主轴排列方向
     //  flex-wrap 换行 
     //  justify-content 主轴对齐方式
     //  align-items  交叉轴对齐方式
     // flex：1 相当于flex: 1 1 0的简写 包括三个属性  flex-grow（剩余空间分配） flex-shrink（缩放比例） flex-basic（初始值） （详细解释）
+    // 2. 不定宽高元素水平垂直居中
+    // 1. flex布局 2. position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)  3. position: absolute; top: 0; right: 0; bottom: 0; left: 0; margin: auto;
+    // 3. 
 </script>
 
 </html>
