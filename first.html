@@ -66,11 +66,11 @@
 <!-- 原型 原型链 继承 -->
 <script>
     // 原型和原型链
-        // 原型链是一个向上查找属性和方法的过程 （通过原型链查找属性和方法）
-        // 函数有prototype属性 对象有__proto__   (定义函数fn 实例对象a)  
-        // 每个原型都有一个constructor属性，指向该关联的构造函数(即fn.prototype.constructor = fn)
-        // a.__proto__ 指向 fn.prototype 所以 a.__proto__= fn.prototype   fn.prototype也是一个对象（Object） 所以 a.__proto__.__proto__= fn.prototype .__proto__ = Object.prototype 
-        // 继续往上找就是 a.__proto__.__proto__.__proto__= fn.prototype .__proto__.__proto__ = Object.prototype.__proto__ = null  直到最后如果没有找到就是null
+    // 原型链是一个向上查找属性和方法的过程 （通过原型链查找属性和方法）
+    // 函数有prototype属性 对象有__proto__   (定义函数fn 实例对象a)  
+    // 每个原型都有一个constructor属性，指向该关联的构造函数(即fn.prototype.constructor = fn)
+    // a.__proto__ 指向 fn.prototype 所以 a.__proto__= fn.prototype   fn.prototype也是一个对象（Object） 所以 a.__proto__.__proto__= fn.prototype .__proto__ = Object.prototype 
+    // 继续往上找就是 a.__proto__.__proto__.__proto__= fn.prototype .__proto__.__proto__ = Object.prototype.__proto__ = null  直到最后如果没有找到就是null
     // 1. 原型链继承 父类的实例作为子类的原型  缺点是引用类型数据共享 不能给父类的构造函数传参数
     function fn() {
         this.name = 'guoguo';
@@ -92,7 +92,7 @@
         fn1.prototype.__proto__.__proto__ == fn.prototype.__proto__ &&
         fn.prototype.__proto__ == Object.prototype)
     console.log(Object.prototype.__proto__ == null)
-    console.log(fn.prototype.constructor)
+    console.log(fn1.prototype.constructor)
 </script>
 <script>
     // 2. 构造函数继承 call apply  
@@ -524,37 +524,40 @@
         //递归
         return [...sort(left), ...[pivot], ...sort(right)];
     }
-
-    function sort1(arr, begin, end) {
-        //递归出口
-        if (begin >= end)
-            return;
-        var l = begin; // 左指针
-        var r = end; //右指针
-        var temp = arr[begin]; //基准数，这里取数组第一个数
-        //左右指针相遇的时候退出扫描循环
-        while (l < r) {
-            //右指针从右向左扫描，碰到第一个小于基准数的时候停住
-            while (l < r && arr[r] >= temp)
-                r--;
-            //左指针从左向右扫描，碰到第一个大于基准数的时候停住
-            while (l < r && arr[l] <= temp)
-                l++;
-            //交换左右指针所停位置的数
-            [arr[l], arr[r]] = [arr[r], arr[l]];
+    // https://segmentfault.com/a/1190000015488549
+    function sort2(arr, i, j) {
+        // debugger
+        if (i < j) {
+            let left = i;
+            let right = j;
+            let pivot = arr[left];
+            while (i < j) {
+                while (arr[j] >= pivot && i < j) { // 从后往前找比基准小的数
+                    j--;
+                }
+                if (i < j) {
+                    arr[i++] = arr[j];
+                    arr[j] = pivot
+                }
+                while (arr[i] <= pivot && i < j) { // 从前往后找比基准大的数
+                    i++;
+                }
+                if (i < j) {
+                    arr[j--] = arr[i];
+                    arr[i] = pivot;
+                }
+            }
+            // arr[i] = pivot;
+            sort2(arr, left, i - 1);
+            sort2(arr, i + 1, right);
+            return arr;
         }
-        //最后交换基准数与指针相遇位置的数
-        [arr[begin], arr[l]] = [arr[l], arr[begin]];
-        //递归处理左右数组
-        sort1(arr, begin, l - 1);
-        sort1(arr, l + 1, end);
-    };
+    }
     console.time('sort');
-    sort(initArr());
+    sort(initArr(), 0, 99999);
     console.timeEnd('sort');
-
     console.time('sort1');
-    sort1(initArr(), 0, 99999);
+    sort2(initArr(), 0, initArr().length-1);
     console.timeEnd('sort1');
     // 递归遍历（多维数组和一维数组之间的转化 多维数组查找）
     // 多维转一维
@@ -637,6 +640,8 @@
     // localStorage和sessionstorage和cookie的区别
     // 跨域的方式？jsonp跨域 proxy代理 nginx反向代理 后端cors websocket即时通讯
     // 图片懒记载的原理
+    // 两个数组合并为一个数组
+    // 观察者模式和订阅发布模式
 </script>
 <!-- css -->
 <script>
