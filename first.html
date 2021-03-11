@@ -211,25 +211,27 @@
 
 
 
-    async function anum() {
-        let a = 10
-        return a //return则相当于执行了Promise.resolve(a) 可以用.then接收
+    function anum(){
+       return new Promise(function (resolve, reject) {
+            let a = 10
+            setTimeout(()=>{
+                resolve(a)
+            }, 2000)
+        })
     }
-    // 同理 promise也有两种接收方式
-    // function anum(){
-    //    return new Promise(function (resolve) {
-    //         let a = 10
-    //         resolve(a) //相当于async中的return
-    //     })
-    // }
-    // 可以用await
-    async function result() {
+    // async的函数内部创建了promise  return则相当于执行了Promise.resolve(aa) 可以用.then接收
+    async function anum1() {
         var aa = await anum()
+        return 11
+    }
+    // await只能在async中使用 后面接一个函数（如果是promise(或者async)就等待resolove(或者return)的返回值作为结果再执行下一个函数 如果是普通函数直接执行不需要等待结果）
+    async function result() {
+        var aa = await anum1()
         console.log(aa)
     }
     result();
-    // 和.then
-    anum().then((res) => {
+
+    anum1().then((res) => {
         console.log(res)
     })
 
@@ -536,18 +538,17 @@
                     j--;
                 }
                 if (i < j) {
-                    arr[i++] = arr[j];
+                    arr[i++] = arr[j]; // 换的值比基准值小 i++后下次从前往后找比基准大的数这个值不需要比较
                     arr[j] = pivot
                 }
                 while (arr[i] <= pivot && i < j) { // 从前往后找比基准大的数
                     i++;
                 }
                 if (i < j) {
-                    arr[j--] = arr[i];
+                    arr[j--] = arr[i]; // 换的值比基准值大 j--后下次从后往前找比基准小的数这个数值不需要比较
                     arr[i] = pivot;
                 }
             }
-            // arr[i] = pivot;
             sort2(arr, left, i - 1);
             sort2(arr, i + 1, right);
             return arr;
