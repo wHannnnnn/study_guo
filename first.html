@@ -29,12 +29,17 @@
     console.log(window.guo)
     // 2. 构造函数中this指向调用函数的实例（谁调用就指向谁）
     function fn1(guo) {
+        console.log(arguments[0]);
         this.guo = guo;
         console.log(this, '构造函数') // aa
     }
     var aa = new fn1('guoguo');
     console.log(aa);
     // 3. 箭头没有this和arguments 调用的是上级作用域this指向  没有就是window
+    // arguments是一个对应于传递给函数的参数的类数组对象。
+    // arguments对象不是一个 Array 。它类似于Array，但除了length属性和索引元素之外没有任何Array属性。
+    // 例如，它没有 pop 方法。但是它可以被转换为一个真正的Array：
+
     var fn3 = () => {
         this.as = 'guoguo'
         console.log(this, '箭头函数');
