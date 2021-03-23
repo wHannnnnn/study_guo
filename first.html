@@ -16,6 +16,7 @@
 <body>
     <input class="view1" type="text">
     <input class="view2" type="text">
+    <input class="view3" type="text">
 </body>
 <!-- this -->
 <script>
@@ -272,16 +273,11 @@
 <!-- 闭包 -->
 <script>
     // 闭包是在函数外部访问函数内部的变量 防止全局变量溢出
-    function fn() {
-        var bb = 'guoguo'
-        return bb;
-    }
-    var aa = fn();
-    console.log(aa, window.bb) // 内部变量return出来
+    // 函数内部定义变量 嵌套个函数并return出来
     // 功能：输入框输入字段需要接口校验 将错误的值缓存起来 减少接口的调用
     var afn = (function fn1(val) {
         var arr = []
-        return function fn2(val) {
+        return function(val) {
             if (arr.indexOf(val) == -1) {
                 arr.push(val)
             }
@@ -330,7 +326,7 @@
     // 5. vue中如何检测到对象属性的添加或删除让页面更新？
     // this.$set   Vue.set   Object.assign 数组push filter等方法
     // 6. vue的双向绑定实现原理？
-    // 数据劫持 + 观察者模式    数据变化 属性劫持Object.defineProperty后 set写入数据执行观察者更新页面 // 下面有！！！
+    // 数据劫持 + 发布订阅模式    数据变化 属性劫持Object.defineProperty后 set写入数据执行订阅者更新页面 // 下面有！！！
     // 7. 首屏优化？
     // 路由懒加载（ () => import(../../) ）
     // cdn外部加载资源（vue router axios）
@@ -350,6 +346,76 @@
     // 观察者模式让多个观察者对象同时监听某一个目标对象，当这个目标对象的状态发生变化时，会通知所有观察者对象
     // 订阅发布模式多了个事件中心（就是对象），订阅者需要向事件中心订阅指定的事件（对象中的某个属性），发布者需要向事件中心发布指定事件（对象中的某个属性），订阅此事件的订阅者会收到通知
     // 观察者
+    // class Watcher {
+    //     constructor(dom) {
+    //         this.dom = dom
+    //     }
+    //     update(html) {
+    //         this.dom.value = html
+    //     }
+    // }
+
+    // // subject主体，负责收集观察者依赖并在特定实际向依赖进行播报
+    // class Dep {
+    //     constructor() {
+    //         this.deps = []
+    //     }
+    //     addDep(watcher) {
+    //         var isExists = this.deps.some(function (item) {
+    //             return item === watcher;
+    //         });
+    //         if (!isExists) {
+    //             this.deps.push(watcher)
+    //         }
+    //     }
+    //     notify(value) {
+    //         for (let i = 0; i < this.deps.length; i++) {
+    //             let watcher = this.deps[i]
+    //             watcher && watcher.update(value)
+    //         }
+    //     }
+    // }
+
+    // let dep = new Dep()
+
+    // function defineReactive(dep, target, key, watcher) {
+    //     // 相同watcher过滤
+    //     watcher.forEach(ele => {
+    //         dep.addDep(ele)
+    //     });
+    //     let v = null
+    //     Object.defineProperty(target, key, {
+    //         get() {
+    //             return v
+    //         },
+    //         set(value) {
+    //             v = value
+    //             dep.notify(v) // 标对象的状态发生变化时，会通知所有观察者对象
+    //         }
+    //     })
+    // }
+
+    // // 获取类名为view1元素的dom对象
+    // let view1 = document.querySelector('.view1')
+    // let view2 = document.querySelector('.view2')
+
+    // let watcher1 = new Watcher(view1)
+    // let watcher2 = new Watcher(view2)
+
+    // let model = {
+    //     value: ''
+    // }
+    // // 将model的value定义为响应式属性并与watcher绑定在一起
+    // defineReactive(dep, model, 'value', [watcher1, watcher2])
+
+    // view1.addEventListener('change', function () {
+    //     model.value = this.value
+    // })
+    // view2.addEventListener('change', function () {
+    //     model.value = this.value
+    // })
+
+    // 发布订阅
     class Watcher {
         constructor(dom) {
             this.dom = dom
@@ -362,19 +428,21 @@
     // subject主体，负责收集观察者依赖并在特定实际向依赖进行播报
     class Dep {
         constructor() {
-            this.deps = []
+            this.deps = {}
         }
-        addDep(watcher) {
-            var isExists = this.deps.some(function (item) {
+        addDep(watcher, event) {
+            this.deps[event] = this.deps[event] || []
+            var isExists = this.deps[event].some(function (item) {
                 return item === watcher;
             });
             if (!isExists) {
-                this.deps.push(watcher)
+                this.deps[event].push(watcher)
             }
         }
-        notify(value) {
-            for (let i = 0; i < this.deps.length; i++) {
-                let watcher = this.deps[i]
+        notify(value, event) {
+            console.log(this.deps)
+            for (let i = 0; i < this.deps[event].length; i++) {
+                let watcher = this.deps[event][i]
                 watcher && watcher.update(value)
             }
         }
@@ -382,10 +450,10 @@
 
     let dep = new Dep()
 
-    function defineReactive(dep, target, key, watcher) {
+    function defineReactive(dep, target, key, watcher,event) {
         // 相同watcher过滤
         watcher.forEach(ele => {
-            dep.addDep(ele)
+            dep.addDep(ele, event)
         });
         let v = null
         Object.defineProperty(target, key, {
@@ -394,7 +462,7 @@
             },
             set(value) {
                 v = value
-                dep.notify(v) // 标对象的状态发生变化时，会通知所有观察者对象
+                dep.notify(v, event) // 标对象的状态发生变化时，会通知所有观察者对象
             }
         })
     }
@@ -402,21 +470,25 @@
     // 获取类名为view1元素的dom对象
     let view1 = document.querySelector('.view1')
     let view2 = document.querySelector('.view2')
+    let view3 = document.querySelector('.view3')
 
     let watcher1 = new Watcher(view1)
     let watcher2 = new Watcher(view2)
+    let watcher3 = new Watcher(view3)
 
     let model = {
-        value: ''
+        value: '',
+        value1: ''
     }
-    // 将model的value定义为响应式属性并与watcher绑定在一起
-    defineReactive(dep, model, 'value', [watcher1, watcher2])
 
+    // 将model的value定义为响应式属性并与watcher绑定在一起
+    defineReactive(dep, model, 'value', [watcher1, watcher3], 'event1')
+    defineReactive(dep, model, 'value1', [watcher2], 'event2')
     view1.addEventListener('change', function () {
         model.value = this.value
     })
     view2.addEventListener('change', function () {
-        model.value = this.value
+        model.value1 = this.value
     })
 </script>
 <!-- webpack -->
@@ -424,8 +496,11 @@
     // webpack主要属性？
     // entry（入口文件） 
     // output（出口文件）  
-    // module（模块处理需要下载引入对应的loader模块 主要是es6解析 sass解析 图片解析为base64文件）
-    // plugins （例如 1.css文件处理之后通常会放在js文件中，将js和css文件解析成不同文件，分离js和css文件，避免js文件过大（提取css文件）；2.生成html并引入对应entry中的js文件 3.每次打包删除上一次的dist文件 4.在webpack.prod.js和webpack.dev.js中分别配置生产环境 开发环境全局常量）
+    // module（模块处理需要下载引入对应的 loader 模块 主要是es6解析 sass解析 图片解析为base64文件）
+    // plugins （例如 1.css文件处理之后通常会放在js文件中，将js和css文件解析成不同文件，分离js和css文件，避免js文件过大（提取css文件）；
+                   // 2.生成html并引入对应entry中的js文件 
+                   // 3.每次打包删除上一次的dist文件 
+                   // 4.在webpack.prod.js和webpack.dev.js中分别配置生产环境 开发环境全局常量）
     // optimization  (优化构建 压缩css js文件 分割代码)
 </script>
 <!-- js防抖节流 -->
@@ -573,6 +648,7 @@
     // 两个数组合并为一个数组
     // 观察者模式和订阅发布模式
     // 深度优先遍历 广度优先遍历（了解）
+    // MVC 和 MVVM ？ MVC（view（视图） model（模型 处理数据） control（控制器）） 用户操作视图view，control接收view指令更新model，model变化后更新view
 </script>
 <!-- css -->
 <script>
