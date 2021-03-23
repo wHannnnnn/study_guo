@@ -217,10 +217,10 @@
 
 
 
-    function anum(){
-       return new Promise(function (resolve, reject) {
+    function anum() {
+        return new Promise(function (resolve, reject) {
             let a = 10
-            setTimeout(()=>{
+            setTimeout(() => {
                 resolve(a)
             }, 2000)
         })
@@ -277,14 +277,16 @@
     // 功能：输入框输入字段需要接口校验 将错误的值缓存起来 减少接口的调用
     var afn = (function fn1(val) {
         var arr = []
-        return function(val) {
-            if (arr.indexOf(val) == -1) {
-                arr.push(val)
+        return {
+            fn1: function (val) {
+                if (arr.indexOf(val) == -1) {
+                    arr.push(val)
+                }
+                return arr
             }
-            return arr
         }
     })()
-    var a1 = afn('1')
+    var a1 = afn.fn1('1')
     console.log(a1)
     // 清除闭包直接让函数变量 = null
     // 下面是不使用闭包
@@ -335,10 +337,10 @@
     // productionSourceMap设置为false 避免生成map文件
     // 8. history模式，vue默认hash模式 url里会有# 可以在router设置mode：history，页面没有#页面会404，相当于请求接口，需要后端配合。
     // 9. 生产环境和开发环境文件路径配置：在.env.development 和 .env.production文件中设置VUE_APP_XXX = '111.22.333'，通过 process.env.VUE_APP_XXX获取参数，vue会判断环境  （process.env.NODE_ENV获取当前环境）
-    // 10. keepalive 页面缓存如何使用
-    // 11. directive 自定义指令 操作dom （拖拽 聚焦）
+    // 10. keepalive 页面缓存如何使用 组件需要定义name   keepalive标签里的include是个数组（是组件的名字 需要缓存的组件）  enclude（不需要缓存的组件）
+    // 11. directive 自定义指令 用来操作dom （拖拽 聚焦）
     // 12. 组件之间的传值
-    // 13. 阻止事件冒泡 默认行为的方法
+    // 13. 阻止事件冒泡 默认行为的方法  @click.stop @click.prevent
 </script>
 <!-- vue双向属性绑定 -->
 <script>
@@ -450,7 +452,7 @@
 
     let dep = new Dep()
 
-    function defineReactive(dep, target, key, watcher,event) {
+    function defineReactive(dep, target, key, watcher, event) {
         // 相同watcher过滤
         watcher.forEach(ele => {
             dep.addDep(ele, event)
@@ -498,9 +500,9 @@
     // output（出口文件）  
     // module（模块处理需要下载引入对应的 loader 模块 主要是es6解析 sass解析 图片解析为base64文件）
     // plugins （例如 1.css文件处理之后通常会放在js文件中，将js和css文件解析成不同文件，分离js和css文件，避免js文件过大（提取css文件）；
-                   // 2.生成html并引入对应entry中的js文件 
-                   // 3.每次打包删除上一次的dist文件 
-                   // 4.在webpack.prod.js和webpack.dev.js中分别配置生产环境 开发环境全局常量）
+    // 2.生成html并引入对应entry中的js文件 
+    // 3.每次打包删除上一次的dist文件 
+    // 4.在webpack.prod.js和webpack.dev.js中分别配置生产环境 开发环境全局常量）
     // optimization  (优化构建 压缩css js文件 分割代码)
 </script>
 <!-- js防抖节流 -->
