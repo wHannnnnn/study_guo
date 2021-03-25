@@ -169,6 +169,77 @@
         }
     }
     console.log(fn2(obj))
+    // 多维转一维（递归和非递归方式 这里只写递归 非递归放在后面）
+    // var arr = [{
+    //     id: 1,
+    //     children: [{
+    //         id: 2,
+    //         children: [{
+    //             id: 3
+    //         }]
+    //     }]
+    // }]
+    // function fn(arr) {
+    //     let newArr = [];
+    //     for (let i = 0; i < arr.length; i++) {
+    //         newArr.push(arr[i])
+    //         if (arr[i].children) {
+    //             newArr = newArr.concat(fn(arr[i].children))
+    //             delete arr[i].children
+    //         }
+    //     }
+    //     return newArr
+    // }
+    // console.log(fn(arr)) // 一 id：1     二 id：2   三 id：3返回数组  二 id：2 + id：3   一 id：1 +  id：2  id：3
+    // 一维转多维 
+    // var arr1 = [{
+    //         id: 1,
+    //         parent: 'all'
+    //     },
+    //     {
+    //         id: 2,
+    //         parent: 1
+    //     },
+    //     {
+    //         id: 3,
+    //         parent: 1
+    //     },
+    //     {
+    //         id: 4,
+    //         parent: 2
+    //     },
+    // ]
+
+    // function fn1(arr, parentId) {
+    //     var newArr = []
+    //     for (let i = 0; i < arr.length; i++) {
+    //         if (arr[i].parent == parentId) {
+    //             arr[i].children = fn1(arr, arr[i].id)
+    //             newArr.push(arr[i])
+    //         }
+    //     }
+    //     return newArr
+    // }
+    // console.log(fn1(arr1, 'all'))
+    // 多维数组查找  可以使用try catch终止循环
+    // function fn2(arr) {
+    //     var obj = null
+    //     try {
+    //         fn3(arr)
+    //         function fn3(arr){
+    //             for (let i = 0; i < arr.length; i++) {
+    //                 if(arr[i].id == 3){
+    //                     obj = arr[i];
+    //                     throw 'error'
+    //                 } else {
+    //                     arr[i].children && fn3(arr[i].children)
+    //                 }
+    //             }
+    //         }
+    //     } catch (err) {}
+    //     return obj
+    // }
+    // console.log(fn2(arr))
 </script> 
 
 </html>

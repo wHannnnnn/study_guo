@@ -16,6 +16,7 @@
 <body>
     <input class="view1" type="text">
     <input class="view2" type="text">
+    <input class="view3" type="text">
 </body>
 <!-- this -->
 <script>
@@ -280,14 +281,16 @@
     // 功能：输入框输入字段需要接口校验 将错误的值缓存起来 减少接口的调用
     var afn = (function fn1(val) {
         var arr = []
-        return function fn2(val) {
-            if (arr.indexOf(val) == -1) {
-                arr.push(val)
+        return {
+            fn1: function (val) {
+                if (arr.indexOf(val) == -1) {
+                    arr.push(val)
+                }
+                return arr
             }
-            return arr
         }
     })()
-    var a1 = afn('1')
+    var a1 = afn.fn1('1')
     console.log(a1)
     // 清除闭包直接让函数变量 = null
     // 下面是不使用闭包
@@ -324,16 +327,17 @@
     // 分为state getter mutation action 还有个module（模块）
     // 可以定义模块集合方便管理 在vuex中引用 modules：{a：module1， b: module2}  module1 = { state: () => ({ ... }),mutations: { ... },actions: { ... }getters: { ... }}
     // state就是数据 getter过滤数据 mutation操作state的方法   action处理异步（action不能直接操作state 必须调用mutation中的commit方法）
-    // vue说mutation处理同步操作 修改state应该是立即生效的   action处理异步操作 其实这是个概念 不是说在mutation中处理异步就会报错，是不会报错的，
+    // vue定义mutation处理同步操作 在mutation中修改state应该是立即生效的   action处理异步操作 其实这是个概念 不是说在mutation中处理异步就会报错，是不会报错的，
     // 这两个函数就是谁来干什么工作的事 个人觉得其实就是vue定义的！！！！！代码规范！！！！！！
     // 使用方法： state： this.$store.state  mapstate (computed中定义...mapstate)
     //   mutation： this.$store.commit  mapMutation （methods中定义..mapMutations）
     //   action: this.$store.dispatch  mapActions (同上)
     // 5. vue中如何检测到对象属性的添加或删除让页面更新？
+    // object.defineProperty可以监听对象的变化      不能监听对象的添加和删除    不能监听数组下标的变化、添加和删除
     // this.$set   Vue.set   Object.assign 数组push filter等方法
  
     // 6. vue的双向绑定实现原理？
-    // 数据劫持 + 观察者模式    数据变化 属性劫持Object.defineProperty后 set写入数据执行观察者更新页面 // 下面有！！！
+    // 数据劫持 + 发布订阅模式    数据变化 属性劫持Object.defineProperty后 set写入数据 发布者发布指定事件通知订阅此事件的订阅者执行页面更新 // 下面有！！！
     // 7. 首屏优化？
     // 路由懒加载（ () => import(../../) ） 
     // https://router.vuejs.org/zh/guide/advanced/lazy-loading.html#%E6%8A%8A%E7%BB%84%E4%BB%B6%E6%8C%89%E7%BB%84%E5%88%86%E5%9D%97
@@ -343,14 +347,19 @@
     // productionSourceMap设置为false 避免生成map文件
     // 8. history模式，vue默认hash模式 url里会有# 可以在router设置mode：history，页面没有#页面会404，相当于请求接口，需要后端配合。
     // 9. 生产环境和开发环境文件路径配置：在.env.development 和 .env.production文件中设置VUE_APP_XXX = '111.22.333'，通过 process.env.VUE_APP_XXX获取参数，vue会判断环境  （process.env.NODE_ENV获取当前环境）
-    // 10. keepalive 页面缓存如何使用
-    // 11. directive 自定义指令 操作dom （拖拽 聚焦）
+    // 10. keepalive 页面缓存如何使用 组件需要定义name   keepalive标签里的include是个数组或逗号分隔的字符串（是组件的名字 需要缓存的组件） enclude（不需要缓存的组件）
+    // 11. directive 自定义指令 用来操作dom （拖拽 聚焦）
     // 12. 组件之间的传值
-    // 13. 阻止事件冒泡 默认行为的方法
+    // 13. 阻止事件冒泡 默认行为的方法  @click.stop @click.prevent
+    // 14. vue生命周期 
+    // beforeCreate（vue实例创建前 初始化）  created（vue实例创建完成 可以获取操作data   ：调接口）  
+    // beforeMount（dom加载完成前） mounted（dom加载完成   ：操作dom）
+    // beforeUpdate（组件更新前）  updated(组件完成更新 ：可以判断页面是否操作过)
+    // beforeDestroy（组件销毁前  ：清除定时器 解绑事件 销毁事件 销毁$on（vue-bus）） destroyed（组件销毁完成）
 </script>
 <!-- vue双向属性绑定 -->
 <script>
-    // 拓展内容：观察者模式而后订阅发布模式的区别？
+    // 拓展内容：观察者模式而后订阅发布模式 的区别？
     // 观察者模式让多个观察者对象同时监听某一个目标对象，当这个目标对象的状态发生变化时，会通知所有观察者对象
     // 订阅发布模式多了个事件中心（就是对象），订阅者需要向事件中心订阅指定的事件（对象中的某个属性），
     //发布者需要向事件中心发布指定事件（对象中的某个属性），订阅此事件的订阅者会收到通知
@@ -368,19 +377,21 @@
     // subject主体，负责收集观察者依赖并在特定实际向依赖进行播报
     class Dep {
         constructor() {
-            this.deps = []
+            this.deps = {}
         }
-        addDep(watcher) {
-            var isExists = this.deps.some(function (item) {
+        addDep(watcher, event) {
+            this.deps[event] = this.deps[event] || []
+            var isExists = this.deps[event].some(function (item) {
                 return item === watcher;
             });
             if (!isExists) {
-                this.deps.push(watcher)
+                this.deps[event].push(watcher)
             }
         }
-        notify(value) {
-            for (let i = 0; i < this.deps.length; i++) {
-                let watcher = this.deps[i]
+        notify(value, event) {
+            console.log(this.deps)
+            for (let i = 0; i < this.deps[event].length; i++) {
+                let watcher = this.deps[event][i]
                 watcher && watcher.update(value)
             }
         }
@@ -388,10 +399,10 @@
 
     let dep = new Dep()
 
-    function defineReactive(dep, target, key, watcher) {
+    function defineReactive(dep, target, key, watcher, event) {
         // 相同watcher过滤
         watcher.forEach(ele => {
-            dep.addDep(ele)
+            dep.addDep(ele, event)
         });
         let v = null
         Object.defineProperty(target, key, {
@@ -400,7 +411,7 @@
             },
             set(value) {
                 v = value
-                dep.notify(v) // 标对象的状态发生变化时，会通知所有观察者对象
+                dep.notify(v, event) // 标对象的状态发生变化时，发布者发布指定的时间 会通知所有订阅此事件的订阅者
             }
         })
     }
@@ -408,30 +419,108 @@
     // 获取类名为view1元素的dom对象
     let view1 = document.querySelector('.view1')
     let view2 = document.querySelector('.view2')
+    let view3 = document.querySelector('.view3')
 
     let watcher1 = new Watcher(view1)
     let watcher2 = new Watcher(view2)
+    let watcher3 = new Watcher(view3)
 
     let model = {
-        value: ''
+        value: '',
+        value1: ''
     }
-    // 将model的value定义为响应式属性并与watcher绑定在一起
-    defineReactive(dep, model, 'value', [watcher1, watcher2])
 
+    // 将model的value定义为响应式属性并与watcher绑定在一起
+    defineReactive(dep, model, 'value', [watcher1, watcher3], 'event1')
+    defineReactive(dep, model, 'value1', [watcher2], 'event2')
     view1.addEventListener('change', function () {
         model.value = this.value
     })
     view2.addEventListener('change', function () {
-        model.value = this.value
+        model.value1 = this.value
     })
+    // 观察者
+    // class Watcher {
+    //     constructor(dom) {
+    //         this.dom = dom
+    //     }
+    //     update(html) {
+    //         this.dom.value = html
+    //     }
+    // }
+
+    // // subject主体，负责收集观察者依赖并在特定实际向依赖进行播报
+    // class Dep {
+    //     constructor() {
+    //         this.deps = []
+    //     }
+    //     addDep(watcher) {
+    //         var isExists = this.deps.some(function (item) {
+    //             return item === watcher;
+    //         });
+    //         if (!isExists) {
+    //             this.deps.push(watcher)
+    //         }
+    //     }
+    //     notify(value) {
+    //         for (let i = 0; i < this.deps.length; i++) {
+    //             let watcher = this.deps[i]
+    //             watcher && watcher.update(value)
+    //         }
+    //     }
+    // }
+
+    // let dep = new Dep()
+
+    // function defineReactive(dep, target, key, watcher) {
+    //     // 相同watcher过滤
+    //     watcher.forEach(ele => {
+    //         dep.addDep(ele)
+    //     });
+    //     let v = null
+    //     Object.defineProperty(target, key, {
+    //         get() {
+    //             return v
+    //         },
+    //         set(value) {
+    //             v = value
+    //             dep.notify(v) // 标对象的状态发生变化时，会通知所有观察者对象
+    //         }
+    //     })
+    // }
+
+    // // 获取类名为view1元素的dom对象
+    // let view1 = document.querySelector('.view1')
+    // let view2 = document.querySelector('.view2')
+
+    // let watcher1 = new Watcher(view1)
+    // let watcher2 = new Watcher(view2)
+
+    // let model = {
+    //     value: ''
+    // }
+    // // 将model的value定义为响应式属性并与watcher绑定在一起
+    // defineReactive(dep, model, 'value', [watcher1, watcher2])
+
+    // view1.addEventListener('change', function () {
+    //     model.value = this.value
+    // })
+    // view2.addEventListener('change', function () {
+    //     model.value = this.value
+    // })
+
 </script>
 <!-- webpack -->
 <script>
     // webpack主要属性？
     // entry（入口文件） 
     // output（出口文件）  
-    // module（模块处理需要下载引入对应的loader模块 主要是es6解析 sass解析 图片解析为base64文件）
-    // plugins （例如 1.css文件处理之后通常会放在js文件中，将js和css文件解析成不同文件，分离js和css文件，避免js文件过大（提取css文件）；2.生成html并引入对应entry中的js文件 3.每次打包删除上一次的dist文件 4.在webpack.prod.js和webpack.dev.js中分别配置生产环境 开发环境全局常量）
+    // module（模块处理需要下载引入对应的 loader 模块 主要是es6解析 sass解析 图片解析为base64文件 图片压缩）
+    // plugins （例如:
+    // 1.css文件处理之后通常会放在js文件中，将js和css文件解析成不同文件，分离js和css文件，避免js文件过大（提取css文件）；
+    // 2.生成html并引入对应entry中的js文件 
+    // 3.每次打包删除上一次的dist文件 
+    // 4.在webpack.prod.js和webpack.dev.js中分别配置生产环境 开发环境全局常量）
     // optimization  (优化构建 压缩css js文件 分割代码)
 </script>
 <!-- js防抖节流 -->
@@ -493,92 +582,22 @@
 <!-- 常见问题 -->
 <script>
     // 数组去重   for循环indexOf查找去重   set去重   for循环查找对象key值   数组reduce（不是很了解）
-    // 冒泡排序
-    // 快速排序
-    // 多维数组和一维数组之间的转化 多维数组查找 
-    // 多维转一维（递归和非递归方式 这里只写递归 非递归放在后面）
-    // var arr = [{
-    //     id: 1,
-    //     children: [{
-    //         id: 2,
-    //         children: [{
-    //             id: 3
-    //         }]
-    //     }]
-    // }]
-    // function fn(arr) {
-    //     let newArr = [];
-    //     for (let i = 0; i < arr.length; i++) {
-    //         newArr.push(arr[i])
-    //         if (arr[i].children) {
-    //             newArr = newArr.concat(fn(arr[i].children))
-    //             delete arr[i].children
-    //         }
-    //     }
-    //     return newArr
-    // }
-    // console.log(fn(arr)) // 一 id：1     二 id：2   三 id：3返回数组  二 id：2 + id：3   一 id：1 +  id：2  id：3
-    // 一维转多维 
-    // var arr1 = [{
-    //         id: 1,
-    //         parent: 'all'
-    //     },
-    //     {
-    //         id: 2,
-    //         parent: 1
-    //     },
-    //     {
-    //         id: 3,
-    //         parent: 1
-    //     },
-    //     {
-    //         id: 4,
-    //         parent: 2
-    //     },
-    // ]
-
-    // function fn1(arr, parentId) {
-    //     var newArr = []
-    //     for (let i = 0; i < arr.length; i++) {
-    //         if (arr[i].parent == parentId) {
-    //             arr[i].children = fn1(arr, arr[i].id)
-    //             newArr.push(arr[i])
-    //         }
-    //     }
-    //     return newArr
-    // }
-    // console.log(fn1(arr1, 'all'))
-    // 多维数组查找  可以使用try catch终止循环
-    // function fn2(arr) {
-    //     var obj = null
-    //     try {
-    //         fn3(arr)
-    //         function fn3(arr){
-    //             for (let i = 0; i < arr.length; i++) {
-    //                 if(arr[i].id == 3){
-    //                     obj = arr[i];
-    //                     throw 'error'
-    //                 } else {
-    //                     arr[i].children && fn3(arr[i].children)
-    //                 }
-    //             }
-    //         }
-    //     } catch (err) {}
-    //     return obj
-    // }
-    // console.log(fn2(arr))
-    // 深拷贝与浅拷贝（浅拷贝只复制对象的一层 深拷贝全部复制）（json.parse(json.stringify)有些许问题 无法拷贝函数 正则 undefined 需要循环递归处理深拷贝）
+    // 冒泡排序  ！！！algorithm文件中！！！
+    // 快速排序  ！！！algorithm文件中！！！
+    // 多维数组和一维数组之间的转化 多维数组查找 ! ！！algorithm文件中！！！
+    // 深拷贝与浅拷贝（浅拷贝只复制对象的一层 深拷贝全部复制）（json.parse(json.stringify)有些许问题 无法拷贝函数 正则 undefined 需要循环递归处理深拷贝） ！！！clone.js！！！
     // call和apply（修改this指向 写法不同 a.call(b) a的this指向b）
-    // 1<3<2结果 0.1+0.2结果
+    // 1<3<2结果    0.1+0.2结果
     // 数组for   forEach   for of  (forEach无法跳出循环 for of没有索引) （正常情况下for循环和forEach循环删除数组会有索引问题 for循环可以使用 i-- 或者 倒循环 最好使用filter  forEach就没有办法操作是数组）
     // map（函数的返回值组成新的数组 改变数组的内容 长度不变） filter （过滤原数组中符合条件的项 返回新数组 不改变数组的内容 长度改变）
     // some（数组中只要有一个满足条件 返回true） every（数组中只要有一个不满足条件 返回false）
-    // localStorage和sessionstorage和cookie的区别
+    // localStorage和sessionstorage和cookie的区别  localStorage永久存储除非手动清除 多个页面之间可以共享  sessionstorage页面关闭清除 页面之间不可以共享  cookie设置过期时间，浏览器和服务器之间相互传递（前端需要设置参数，每次请求头中可以携带cookie传递到后端 后端读取后可以修改cookie 并且可以在返回头中设置set-cookie属性前端可以查看）
     // 跨域的方式？jsonp跨域 proxy代理 nginx反向代理 后端cors websocket即时通讯
-    // 图片懒记载的原理
-    // 两个数组合并为一个数组
+    // 图片懒记载的原理 (src='' data-src='url'    scroll距离 + 屏幕距离 > 元素距离顶部高度)
+    // 两个数组合并为一个数组  concat   [...[], ...[]]
     // 观察者模式和订阅发布模式
-    // 深度优先遍历 广度优先遍历（了解）
+    // 深度优先遍历 广度优先遍历（了解） ！！！algorithm文件中！！！
+    // MVC 和 MVVM ？ MVC（view（视图） model（模型 处理数据） control（控制器）） 用户操作视图view，control接收view指令更新model，model变化后更新view
 </script>
 <!-- css -->
 <script>
@@ -590,7 +609,7 @@
     // flex：1 相当于flex: 1 1 0的简写 包括三个属性  flex-grow（剩余空间分配） flex-shrink（缩放比例） flex-basic（初始值） （详细解释）
     // 2. 不定宽高元素水平垂直居中
     // 1. flex布局 2. position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)  3. position: absolute; top: 0; right: 0; bottom: 0; left: 0; margin: auto;
-    // 3. 
+    // 3. 左侧固定 右侧自适应     两端固定   中间自适应
 </script>
 
 </html>
