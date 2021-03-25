@@ -125,7 +125,7 @@
     // 4. 寄生继承(用于对象) 新建一个构造函数 这个函数作为新的父类实例 让它的原型等于旧的父类 让子类的原型等于这个构造函数 类似于原型链继承(子类的原型 = 父类的实例(这个父类是新创建的构造函数))
     // 引用属性共享 函数没有复用(和构造函数继承类似 调用一次复制执行一次)
     function create(obj) {
-        function F() {};
+        function F() { };
         F.prototype = obj;
         return new F();
     }
@@ -175,10 +175,11 @@
 </script>
 <!-- 异步 -->
 <script>
-    // js单线程 由上到下按顺序执行 异步事件放入事件队列中 主进程结束完 执行事件队列中的异步(顺序执行 异步函数不需要上一个执行完 可以同时进行 不阻塞进程)
+    // js单线程 由上到下按顺序执行 异步事件放入事件队列中 主进程结束完 
+    //执行事件队列中的异步(顺序执行 异步函数不需要上一个执行完 可以同时进行 不阻塞进程)
     // setTimeout(function () {
     //     // debugger
-    //     console.log(5, new Date().getTime())
+    //     console.log(3, new Date().getTime())
     // }, 0)
     // for(var i=0; i<1000000000; i++) {}
     // setTimeout(function () {
@@ -187,28 +188,8 @@
     // }, 0)
     // setTimeout(function () {
     //     // debugger
-    //     consolee.log(5, new Date().getTime())
-    // }, 0)
-    // setTimeout(function () {
-    //     // debugger
-    //     console.log(5, new Date().getTime())
-    // }, 0)
-    // setTimeout(function () {
-    //     // debugger
-    //     console.log(5, new Date().getTime())
-    // }, 0)
-    // setTimeout(function () {
-    //     // debugger
-    //     console.log(5, new Date().getTime())
-    // }, 0)
-    // setTimeout(function () {
-    //     // debugger
-    //     console.log(5, new Date().getTime())
-    // }, 0)
-    // setTimeout(function () {
-    //     // debugger
-    //     console.log(5, new Date().getTime())
-    // }, 0)
+    //     console.log(6, new Date().getTime())
+    // }, 1000)
     // setTimeout(function () {
     //     // debugger
     //     console.log(5, new Date().getTime())
@@ -216,10 +197,12 @@
 
 
 
-    function anum(){
-       return new Promise(function (resolve, reject) {
+
+    function anum() {
+        return new Promise(function (resolve, reject) {
             let a = 10
-            setTimeout(()=>{
+            console.log(a)
+            setTimeout(() => {
                 resolve(a)
             }, 2000)
         })
@@ -227,6 +210,7 @@
     // async的函数内部创建了promise  return则相当于执行了Promise.resolve(aa) 可以用.then接收
     async function anum1() {
         var aa = await anum()
+        console.log(aa)
         return 11
     }
     // await只能在async中使用 后面接一个函数（如果是promise(或者async)就等待resolove(或者return)的返回值作为结果再执行下一个函数 如果是普通函数直接执行不需要等待结果）
@@ -241,37 +225,52 @@
     })
 
     // js执行顺序 
-    // async function async1() {
-    //     console.log(1)
-    //     await async2()
-    //     setTimeout(function () {
-    //         console.log(2)
-    //     }, 0)
-    // }
-    // async function async2() {
-    //     setTimeout(() => {
-    //         console.log(3)
-    //     }, 0)
-    // }
-    // console.log(4)
-    // setTimeout(function () {
-    //     // debugger
-    //     console.log(5)
-    // }, 0)
-    // new Promise(function (resolve) {
-    //     resolve()
-    //     console.log(6)
-    //     setTimeout(function () {
-    //         console.log(8)
-    //     }, 0)
-    // }).then(() => {
-    //     console.log(7)
-    // })
-    // async1()
+    async function async1() {
+        console.log(1)
+        await async2()
+        setTimeout(function () {
+            console.log(2)
+        }, 0)
+    }
+    async function async2() {
+        setTimeout(() => {
+            console.log(3)
+        }, 0)
+    }
+
+    console.log(4)
+    setTimeout(function () {
+        // debugger
+        console.log(5)
+    }, 0)
+    new Promise(function (resolve) {
+        resolve()
+        console.log(6)
+        setTimeout(function () {
+            console.log(8)
+        }, 0)
+    }).then(() => {
+        console.log(7)
+    })
+    async1()
+
 </script>
 <!-- 闭包 -->
 <script>
+    //闭包函数：声明在一个函数中的函数，叫做闭包函数。
+
+    // 闭包：内部函数总是可以访问其所在的外部函数中声明的参数和变量，即使在其外部函数被返回（寿命终结）了之后。
+    //特点
+    //   让外部访问函数内部变量成为可能；
+
+    // 局部变量会常驻在内存中；
+
+    // 可以避免使用全局变量，防止全局变量污染；
+
+    // 会造成内存泄漏（有一块内存空间被长期占用，而不被释放）
+
     // 闭包是在函数外部访问函数内部的变量 防止全局变量溢出
+    //每次外部函数执行的时 候，外部函数的引用地址不同，都会重新创建一个新的地址。
     function fn() {
         var bb = 'guoguo'
         return bb;
@@ -309,6 +308,9 @@
 <script>
     // 1. data为什么是函数return？
     // 目的是多次引用同一组件 修改data数据相互不影响（每复用一次组件，就会返回一份新的data）
+    // 把对象用函数包裹起来 retrun 出去以后为啥就能实现我们想要的效果，因为在js中使用函数包裹起来数据的话，他是属于局部变量，不会像全局变量一样容易被污染，当data是一个函数的时候，他的每一个组件都是一个单独的作用域被包裹起来，相互独立，互不影响
+        //1.不使用retrun包裹数据会使得数据全局化，会造成变量污染。
+       // 2.在vue中使用retrun包裹的数据中的变量只会在当前的组件内有效，不会影响到其他的组件中
     // 2. key的作用？
     // key相当于标识 加了key就用key去比较 不加key会用位置比较（不要用index做为key 和不加key一样，页面组件简单的话可以，复杂就会出现和不加key一样的问题）
     // 在页面较复杂（子组件循环）不加key 假如有三个输入框， 删除第二个会把第三个删除，原因是vue数据更新是新旧值比较更新vdom
@@ -329,10 +331,12 @@
     //   action: this.$store.dispatch  mapActions (同上)
     // 5. vue中如何检测到对象属性的添加或删除让页面更新？
     // this.$set   Vue.set   Object.assign 数组push filter等方法
+ 
     // 6. vue的双向绑定实现原理？
     // 数据劫持 + 观察者模式    数据变化 属性劫持Object.defineProperty后 set写入数据执行观察者更新页面 // 下面有！！！
     // 7. 首屏优化？
-    // 路由懒加载（ () => import(../../) ）
+    // 路由懒加载（ () => import(../../) ） 
+    // https://router.vuejs.org/zh/guide/advanced/lazy-loading.html#%E6%8A%8A%E7%BB%84%E4%BB%B6%E6%8C%89%E7%BB%84%E5%88%86%E5%9D%97
     // cdn外部加载资源（vue router axios）
     // 减少图片使用 懒加载等
     // 第三方库按需引入
@@ -348,8 +352,10 @@
 <script>
     // 拓展内容：观察者模式而后订阅发布模式的区别？
     // 观察者模式让多个观察者对象同时监听某一个目标对象，当这个目标对象的状态发生变化时，会通知所有观察者对象
-    // 订阅发布模式多了个事件中心（就是对象），订阅者需要向事件中心订阅指定的事件（对象中的某个属性），发布者需要向事件中心发布指定事件（对象中的某个属性），订阅此事件的订阅者会收到通知
+    // 订阅发布模式多了个事件中心（就是对象），订阅者需要向事件中心订阅指定的事件（对象中的某个属性），
+    //发布者需要向事件中心发布指定事件（对象中的某个属性），订阅此事件的订阅者会收到通知
     // 观察者
+
     class Watcher {
         constructor(dom) {
             this.dom = dom
