@@ -79,8 +79,8 @@
                     arr[i] = pivot;
                 }
             }
-            sort2(arr, left, i - 1);
-            sort2(arr, i + 1, right);
+            sort2(arr, left, i - 1); // left=0
+            sort2(arr, i + 1, right); // right = arr.length-1    arr[right]数组最后一项
             return arr;
         }
     }

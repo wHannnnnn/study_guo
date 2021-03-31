@@ -1,15 +1,15 @@
-1.精通DIV+CSS样式布局，熟练掌握响应式布局、弹性布局、流式布局等布局方式，按照需求利用合适的布局方式进行PC和移动端的网站开发；
+1.熟练使用DIV+CSS样式布局，熟练掌握响应式布局、弹性布局、流式布局等布局方式，按照需求利用合适的布局方式进行PC和移动端的网站开发；
 2.熟悉HTML5,CSS3,JavaScript等Web前端开发技术,能熟练编写具有良好风格规范的代码；
 3.熟练运用JS、JQuery、Ajax完成服务器交互及动态效果；熟练使用Scss、Less编写样式代码；
 4.熟练掌握原生javaScript语言的DOM、BOM、以及其原型、原型链、继承、缓存、闭包等特性；
 5.熟悉ES6新特性，包括let、const，箭头函数，解构赋值，默认参数等；
 6.熟练使用异步编程模式，了解 Promise，await/async；
-7.熟悉前端基础样式框架和库，如elementui、iview、vantui、bootstrap、zepto、mint-ui、mui-master、swiper等；
-8..熟练使用 Vue 构建单页面应用（vue-cli、vue-router、vuex、axios、component等）
-9.熟练使用 SVN、git 版本控制工具，熟悉webpack打包，了解npm依赖管理工具；
+7.熟悉前端基础样式框架和库，如elementui、iview、vantui、bootstrap、zepto、mint-ui、swiper等；
+8.熟练使用 Vue 构建单页面应用（vue-cli、vue-router、vuex、axios、component等）
+9.熟练使用 SVN、git 版本控制工具，了解webpack打包，了解npm依赖管理工具；
 10.React
 11.熟练使用微信小程序整体开发流程, 接口组件、验证授权等；
-12.
+12.其他技能
 
 
 后台管理项目
@@ -35,7 +35,7 @@ mallApplets-gitee  化妆品小程序
 登录流程处理，本地缓存token是否存在和session_key是否过期判断登录状态；
 接口请求封装，使用promise，async/await处理异步请求；
 封装自定义组件，使代码简洁可复用；
-实现转发、分享、订阅、授权等相关功能；
+实现转发、分享、订阅、授权等功能；
 使用腾讯地图 Api 定位搜索和反解析地址；
 使用canvas绘图实现页面部分生成图片并保存至本地；
 使用云函数开发调用生成小程序码；
