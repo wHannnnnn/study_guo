@@ -262,7 +262,7 @@
 
     // 闭包：内部函数总是可以访问其所在的外部函数中声明的参数和变量，即使在其外部函数被返回（寿命终结）了之后。
     //特点
-    //   让外部访问函数内部变量成为可能；
+    //   让函数外部访问函数内部变量成为可能；
 
     // 局部变量会常驻在内存中；
 
@@ -549,18 +549,24 @@
             }, 1000)
         },
         // 节流： 规定在一个时间范围内，只能触发一次函数  多次触发只有一次生效
+        preTime: 0,
         fn2: function () {
-            if (this.timer) {
-                return false
-            }
-            this.timer = setTimeout(() => {
-                this.timer = null
+            // if (this.timer) {
+            //     return false
+            // }
+            // this.timer = setTimeout(() => {
+            //     this.timer = null
+            //     console.log('asd')
+            // }, 1000)
+            // 立即执行
+            if (Date.now() - this.preTime > 1000) {
                 console.log('asd')
-            }, 1000)
+                this.preTime = Date.now()
+            }
         }
     }
     window.onscroll = function () {
-        obj.fn1()
+        obj.fn2()
     }
 </script>
 <!-- es6 -->
@@ -581,19 +587,19 @@
 </script>
 <!-- 常见问题 -->
 <script>
-    // 数组去重   for循环indexOf查找去重   set去重   for循环查找对象key值   数组reduce（不是很了解）
+    // 数组去重   for循环indexOf查找去重   set去重   for循环查找对象key值   数组reduce（和对象查找key值一样）
     // 冒泡排序  ！！！algorithm文件中！！！
     // 快速排序  ！！！algorithm文件中！！！
     // 多维数组和一维数组之间的转化 多维数组查找 ! ！！algorithm文件中！！！
     // 深拷贝与浅拷贝（浅拷贝只复制对象的一层 深拷贝全部复制）（json.parse(json.stringify)有些许问题 无法拷贝函数 正则 undefined 需要循环递归处理深拷贝） ！！！clone.js！！！
     // call和apply（修改this指向 写法不同 a.call(b) a的this指向b）
     // 1<3<2结果    0.1+0.2结果
-    // 数组for   forEach   for of  (forEach无法跳出循环 for of没有索引) （正常情况下for循环和forEach循环删除数组会有索引问题 for循环可以使用 i-- 或者 倒循环 最好使用filter  forEach就没有办法操作是数组）
+    // 数组for   forEach   for of  (forEach无法使用break continue return跳出循环 可以使用try{}catch(){}跳出错误 for of没有索引) （正常情况下for循环和forEach循环删除数组会有索引问题 for循环可以使用 i-- 或者 倒循环 最好使用filter  forEach就没有办法操作是数组）
     // map（函数的返回值组成新的数组 改变数组的内容 长度不变） filter （过滤原数组中符合条件的项 返回新数组 不改变数组的内容 长度改变）
     // some（数组中只要有一个满足条件 返回true） every（数组中只要有一个不满足条件 返回false）
     // localStorage和sessionstorage和cookie的区别  localStorage永久存储除非手动清除 多个页面之间可以共享  sessionstorage页面关闭清除 页面之间不可以共享  cookie设置过期时间，浏览器和服务器之间相互传递（前端需要设置参数，每次请求头中可以携带cookie传递到后端 后端读取后可以修改cookie 并且可以在返回头中设置set-cookie属性前端可以查看）
     // 跨域的方式？jsonp跨域 proxy代理 nginx反向代理 后端cors websocket即时通讯
-    // 图片懒记载的原理 (src='' data-src='url'    scroll距离 + 屏幕距离 > 元素距离顶部高度)
+    // 图片懒记载的原理 (src='default.jpg' data-src='url'    scroll距离 + 屏幕距离 > 元素距离顶部高度)
     // 两个数组合并为一个数组  concat   [...[], ...[]]
     // 观察者模式和订阅发布模式
     // 深度优先遍历 广度优先遍历（了解） ！！！algorithm文件中！！！
@@ -615,7 +621,7 @@
     // 2. 不定宽高元素水平垂直居中
     // 1. flex布局 2. position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)  3. position: absolute; top: 0; right: 0; bottom: 0; left: 0; margin: auto;
     // 3. 左侧固定 右侧自适应     两端固定   中间自适应
-
+    // 盒子模型 元素宽度 = width（内容宽）+ padding（内边距）+border（边框）+margin（外边距）
 </script>
 <style>
     /* 方法一 */
