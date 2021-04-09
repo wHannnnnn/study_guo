@@ -582,6 +582,38 @@
 <!-- 常见问题 -->
 <script>
     // 数组去重   for循环indexOf查找去重   set去重   for循环查找对象key值   数组reduce（不是很了解）
+    // 1.利用ES6 Set去重 2.利用for嵌套for，然后splice去重  3.利用indexOf去重 
+    // 4.利用sort() 利用sort()排序方法，然后根据排序后的结果进行遍历及相邻元素比对。
+    // 5.利用对象的属性不能相同的特点进行去重 //两个true直接去掉了，NaN和{}去重
+    // 6.利用includes   if( !array.includes( arr[i]) ) {//includes 检测数组是否有某个值   //{}没有去重
+    // 7.利用hasOwnProperty判断是否存在对象属性   //所有的都去重了
+    // function unique(arr) {
+    //     if (!Array.isArray(arr)) {
+    //         console.log('type error!')
+    //         return
+    //     }
+    //     var arrry = [];
+    //     var obj = {};
+    //     for (var i = 0; i < arr.length; i++) {
+    //         if (!obj[arr[i]]) {
+    //             arrry.push(arr[i])
+    //             obj[arr[i]] = 1
+    //         } else {
+    //             obj[arr[i]]++
+    //         }
+    //     }
+    //     return arrry;
+    // }
+    // var arr = [1, 1, 'true', 'true', true, true, 15, 15, false, false, undefined, undefined, null, null, NaN, NaN, 'NaN', 0, 0, 'a', 'a', {}, {}];
+    // console.log(unique(arr))
+    function unique(arr) {
+        var obj = {};
+        return arr.filter(function (item, index, arr) {
+            return obj.hasOwnProperty(typeof item + item) ? false : (obj[typeof item + item] = true)
+        })
+    }
+    var arr = [1, 1, 'true', 'true', true, true, 15, 15, false, false, undefined, undefined, null, null, NaN, NaN, 'NaN', 0, 0, 'a', 'a', {}, {}];
+    console.log(unique(arr))
     // 冒泡排序  ！！！algorithm文件中！！！
     // 快速排序  ！！！algorithm文件中！！！
     // 多维数组和一维数组之间的转化 多维数组查找 ! ！！algorithm文件中！！！
