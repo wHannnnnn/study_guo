@@ -22,7 +22,7 @@
 6.使用Axios进行页面数据交互，promise、Async/Await异步解决方案；
 7.使用Vue计算属性computed和监听属性watch监听和计算数据变化；
 8.使用自定义指令directives对普通dom元素进行操作；
-9.使用keepalive实现指定页面之间缓存；难点！！可以说
+9.使用keepalive实现指定页面之间缓存；
 9.使用Vue相关插件完成页面功能的开发；
 10.优化项目，提高项目运行加载速度；
 

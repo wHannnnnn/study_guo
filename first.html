@@ -315,9 +315,9 @@
         //1.不使用retrun包裹数据会使得数据全局化，会造成变量污染。
        // 2.在vue中使用retrun包裹的数据中的变量只会在当前的组件内有效，不会影响到其他的组件中
     // 2. key的作用？
-    // key相当于标识 加了key就用key去比较 不加key会用位置比较（不要用index做为key 和不加key一样，页面组件简单的话可以，复杂就会出现和不加key一样的问题）
-    // 在页面较复杂（子组件循环）不加key 假如有三个输入框， 删除第二个会把第三个删除，原因是vue数据更新是新旧值比较更新vdom
-    // 对于数据来说是 1,2,3 变成了1，3 对于vue来说它会去比较值， 1和1没变，2和3 2变成了3，3和undefined 3没有了，所以vue的解决方式是2变成了3， 3没有就被删除了
+    // key相当于标识 加了key就用key去比较 不加key会用位置比较（不要用index做为key 和不加key一样，页面组件简单的话可以，循环组件中添加删除就会出现和不加key一样的问题）
+    // 在页面较复杂（子组件循环）不加key 假如有三个输入框， 删除第二个，数据虽然正确，但是会把第三个输入框删除，原因是vue数据更新是新旧值比较更新vdom
+    // 对于数据来说是 1,2,3 变成了1，3 对于vue来说它会去比较值， 数据1和1没变，数据2和3 2变成了3，数据3和undefined 数据3没有了被删除了，但是对于位置来说 第二个位置还在，只是由2变成了3，第三个位置没有了，所以vue的解决方式就是第三个节点被删除了，后续添加删除使用index会有错误
     // 3. computed和watch的区别？
     // 计算属性和监听属性
     // computed定义一个值并return返回，这个值不允许在data和props中定义，如果这个值相关联的数据没有变化 会优先从缓存中读取 不需要再次执行
@@ -327,8 +327,7 @@
     // 分为state getter mutation action 还有个module（模块）
     // 可以定义模块集合方便管理 在vuex中引用 modules：{a：module1， b: module2}  module1 = { state: () => ({ ... }),mutations: { ... },actions: { ... }getters: { ... }}
     // state就是数据 getter过滤数据 mutation操作state的方法   action处理异步（action不能直接操作state 必须调用mutation中的commit方法）
-    // vue定义mutation处理同步操作 在mutation中修改state应该是立即生效的   action处理异步操作 其实这是个概念 不是说在mutation中处理异步就会报错，是不会报错的，
-    // 这两个函数就是谁来干什么工作的事 个人觉得其实就是vue定义的！！！！！代码规范！！！！！！
+    // vue定义mutation处理同步操作 在mutation中修改state应该是立即生效的   action处理异步操作 其实这是个概念 不是说在mutation中处理异步就会报错，是不会报错的！
     // 使用方法： state： this.$store.state  mapstate (computed中定义...mapstate)
     //   mutation： this.$store.commit  mapMutation （methods中定义..mapMutations）
     //   action: this.$store.dispatch  mapActions (同上)
@@ -539,10 +538,10 @@
             }, 1000)
         },
         fn1: function () {
-            this.timer && clearTimeout(this.timer)
             if (!this.timer) {
                 console.log('asd')
             }
+            this.timer && clearTimeout(this.timer)
             // 重新计算    
             this.timer = setTimeout(() => {
                 this.timer = null // 间隔超过设定时间 timer=null 上面的才能执行
@@ -587,7 +586,39 @@
 </script>
 <!-- 常见问题 -->
 <script>
-    // 数组去重   for循环indexOf查找去重   set去重   for循环查找对象key值   数组reduce（和对象查找key值一样）
+    // 数组去重   for循环indexOf查找去重   set去重   for循环查找对象key值   数组reduce（不是很了解）
+    // 1.利用ES6 Set去重 2.利用for嵌套for，然后splice去重  3.利用indexOf去重 
+    // 4.利用sort() 利用sort()排序方法，然后根据排序后的结果进行遍历及相邻元素比对。
+    // 5.利用对象的属性不能相同的特点进行去重 //两个true直接去掉了，NaN和{}去重
+    // 6.利用includes   if( !array.includes( arr[i]) ) {//includes 检测数组是否有某个值   //{}没有去重
+    // 7.利用hasOwnProperty判断是否存在对象属性   //所有的都去重了
+    // function unique(arr) {
+    //     if (!Array.isArray(arr)) {
+    //         console.log('type error!')
+    //         return
+    //     }
+    //     var arrry = [];
+    //     var obj = {};
+    //     for (var i = 0; i < arr.length; i++) {
+    //         if (!obj[arr[i]]) {
+    //             arrry.push(arr[i])
+    //             obj[arr[i]] = 1
+    //         } else {
+    //             obj[arr[i]]++
+    //         }
+    //     }
+    //     return arrry;
+    // }
+    // var arr = [1, 1, 'true', 'true', true, true, 15, 15, false, false, undefined, undefined, null, null, NaN, NaN, 'NaN', 0, 0, 'a', 'a', {}, {}];
+    // console.log(unique(arr))
+    function unique(arr) {
+        var obj = {};
+        return arr.filter(function (item, index, arr) {
+            return obj.hasOwnProperty(typeof item + item) ? false : (obj[typeof item + item] = true)
+        })
+    }
+    var arr = [1, 1, 'true', 'true', true, true, 15, 15, false, false, undefined, undefined, null, null, NaN, NaN, 'NaN', 0, 0, 'a', 'a', {}, {}];
+    console.log(unique(arr))
     // 冒泡排序  ！！！algorithm文件中！！！
     // 快速排序  ！！！algorithm文件中！！！
     // 多维数组和一维数组之间的转化 多维数组查找 ! ！！algorithm文件中！！！
